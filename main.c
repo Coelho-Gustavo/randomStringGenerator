@@ -4,6 +4,8 @@
 #define ASCII_START 33
 #define ASCII_STOP 94
 #define FILENAME "charlist.txt"
+#define QNT_CHAR 16
+#define USARARQUIVO 1
 
 
 int vClock() {
@@ -72,12 +74,11 @@ int main() {
         free(cL);
         return 0;
     }
-    int sizef = chars(1, &cL); // Mude pra 1 se quer que os caracteres do charlist.txt sejam utilizados
+    int sizef = chars(USARARQUIVO, &cL); // Mude pra 1 se quer que os caracteres do charlist.txt sejam utilizados
     printf("%d\n", sizef);
     unsigned int seed = 0411144127712 * vClock(); //Numero da melhor pizzaria multiplicado pelo clock do processador
-    int qChar = 12;
     
-    for (int i = 0; i < qChar; i++){
+    for (int i = 0; i < QNT_CHAR; i++){
         unsigned int n = random(&seed) % (sizef);
         printf("%c", cL[n]);
     }
