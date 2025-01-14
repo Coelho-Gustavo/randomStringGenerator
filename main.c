@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <time.h>
 
+#define ASCII_START 33
+#define ASCII_STOP 94
+#define FILENAME "charlist.txt"
+
+
 int vClock() {
     time_t t, it;
     struct tm *tms;
@@ -15,30 +20,40 @@ int vClock() {
     return difftime(t, it);
 }
 
-char *chars(int a) { //Array de caracteres
-    char *cL = (char *)malloc(93 * sizeof(char));
-    if(!cL){
+int chars(int a, char **cL) { //Array de caracteres
+    *cL = (char *)realloc(*cL, 93 * sizeof(char));
+    if(!*cL){
+        perror("Erro ao alocar memória");
         return 0;
     }
 
     if (a){
         FILE *fptr;
-        fptr = fopen("charlist.txt", "r");
+        fptr = fopen(FILENAME, "r");
+        if(fptr == NULL){
+            perror("Erro ao abrir arquivo");
+            return 0;
+        }
 
         fseek(fptr, 0, SEEK_END);
         long sizef = ftell(fptr);
         fseek(fptr, 0, SEEK_SET);
 
-        cL = (char *)realloc(cL, sizef * sizeof(char));
-
-        fgets(cL, sizef+1, fptr);
-        fclose(fptr);
-        return cL;
-    } else {
-        for(int i = 0; i < 94; i++){ //Coletor de caracteres em ASCII, conferir tabela para visualizar
-            cL[i] = 33+i;
+        *cL = (char *)realloc(*cL, sizef * sizeof(char));
+        if(!*cL){
+            perror("Erro ao realocar memoria");
+            fclose(fptr);
+            return 0;
         }
-        return cL;
+
+        fgets(*cL, sizef+1, fptr);
+        fclose(fptr);
+        return sizef;
+    } else {
+        for(int i = 0; i < ASCII_STOP; i++){ //Coletor de caracteres em ASCII, conferir tabela para visualizar
+            (*cL)[i] = ASCII_START+i;
+        }
+        return ASCII_STOP-1;
     }
 }
 
@@ -51,17 +66,23 @@ unsigned int random(unsigned int *seed) { //Algoritmo Xorshift
 }
 
 int main() {
-    char *cL = chars(0); // Mude pra 1 se quer que os caracteres do charlist.txt sejam utilizados
+    char *cL = (char *)malloc(0);
+    if(!cL){
+        perror("Erro ao alocar memoria");
+        free(cL);
+        return 0;
+    }
+    int sizef = chars(1, &cL); // Mude pra 1 se quer que os caracteres do charlist.txt sejam utilizados
+    printf("%d\n", sizef);
     unsigned int seed = 0411144127712 * vClock(); //Numero da melhor pizzaria multiplicado pelo clock do processador
     int qChar = 12;
-
-    if (cL) {
-        for (int i = 0; i < qChar; i++){
-            unsigned int n = random(&seed) % (93);
-            //printf("%c", cL[n]);
-        }
-        free(cL);
+    
+    for (int i = 0; i < qChar; i++){
+        unsigned int n = random(&seed) % (sizef);
+        printf("%c", cL[n]);
     }
+
+    free(cL);
 
     return 0;
 }
